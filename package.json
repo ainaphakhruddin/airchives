@@ -1,0 +1,33 @@
+{
+  "name": "airchives",
+  "version": "0.1.0",
+  "description": "AI-powered vintage clothing model generator",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "setup": "npm install && npm run db:setup",
+    "db:setup": "cd apps/api && npm run db:generate && npm run db:push && npm run db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "eslint": "^8.51.0",
+    "prettier": "^3.0.3",
+    "turbo": "^1.10.16",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "esbuild": "^0.27.2"
+  }
+}

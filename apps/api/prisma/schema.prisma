@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  preferredModelId  String?
+  createdAt         DateTime  @default(now())
+  
+  // Relations
+  garments          Garment[]
+  
+  @@map("users")
+}
+
+model Garment {
+  id               String      @id @default(cuid())
+  ownerId          String
+  originalImageUrl  String
+  category         GarmentCategory
+  detectedColor    String
+  maskImageUrl     String?
+  status           GarmentStatus @default(UPLOADED)
+  createdAt        DateTime    @default(now())
+  
+  // Relations
+  owner            User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  aiGenerations    AIGeneration[]
+  
+  @@map("garments")
+}
+
+model AIGeneration {
+  id             String           @id @default(cuid())
+  garmentId      String
+  targetModelId  String
+  status         GenerationStatus @default(PENDING)
+  promptUsed     String
+  negativePrompt String?
+  batchSize      Int              @default(3)
+  errorMessage   String?
+  completedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  
+  // Relations
+  garment        Garment          @relation(fields: [garmentId], references: [id], onDelete: Cascade)
+  outputImages   OutputImage[]
+  
+  @@map("ai_generations")
+}
+
+model OutputImage {
+  id           String       @id @default(cuid())
+  generationId String
+  imageUrl     String
+  aspectRatio  AspectRatio  @default(SQUARE)
+  isFavorite   Boolean      @default(false)
+  downloadCount Int          @default(0)
+  
+  // Relations
+  generation   AIGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  
+  @@map("output_images")
+}
+
+model VirtualModel {
+  id          String  @id @default(cuid())
+  name        String
+  gender      ModelGender
+  bodyType    String
+  ethnicity   String
+  styleTags   String[] // JSON array of style tags
+  imageUrl    String?  // Reference image of the model
+  isActive    Boolean @default(true)
+  
+  @@map("virtual_models")
+}
+
+// Enums
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum GarmentCategory {
+  TOP
+  BOTTOM
+  DRESS
+  OUTERWEAR
+}
+
+enum GarmentStatus {
+  UPLOADED
+  SEGMENTED
+  FAILED
+}
+
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AspectRatio {
+  SQUARE    // 1:1
+  PORTRAIT  // 4:5
+  LANDSCAPE // 3:4
+}
+
+enum ModelGender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
